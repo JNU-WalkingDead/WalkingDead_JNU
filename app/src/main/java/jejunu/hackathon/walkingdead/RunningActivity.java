@@ -1,5 +1,6 @@
 package jejunu.hackathon.walkingdead;
 
+
 import android.content.Intent;
 import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
