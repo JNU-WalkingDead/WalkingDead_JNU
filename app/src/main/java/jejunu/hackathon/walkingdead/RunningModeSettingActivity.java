@@ -11,6 +11,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -51,12 +52,14 @@ public class RunningModeSettingActivity extends AppCompatActivity implements Goo
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_done:
-                Intent intent = new Intent(RunningModeSettingActivity.this, RunningActivity.class);
-                intent.putExtra("start", startLatLng);
-                intent.putExtra("end", endLatLng);
-                startActivity(intent);
-                super.onBackPressed();
-                return true;
+                if (startLatLng != null && endLatLng != null) {
+                    Intent intent = new Intent(RunningModeSettingActivity.this, RunningActivity.class);
+                    intent.putExtra("start", startLatLng);
+                    intent.putExtra("end", endLatLng);
+                    startActivity(intent);
+                    super.onBackPressed();
+                    return true;
+                }
         }
         return super.onOptionsItemSelected(item);
     }
@@ -72,22 +75,21 @@ public class RunningModeSettingActivity extends AppCompatActivity implements Goo
     @Override
     public void onMapClick(LatLng latLng) {
         mMap.clear();
-        if(markerStatus){
+        if (markerStatus) {
             startLatLng = latLng;
-        }
-        else{
+        } else {
             endLatLng = latLng;
         }
         markerStatus = !markerStatus;
 
-        if(startLatLng != null){
+        if (startLatLng != null) {
             startMarker = new MarkerOptions()
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.start))
                     .position(startLatLng).draggable(true);
             mMap.addMarker(startMarker);
         }
-        if(endLatLng != null){
-            endMarker =  new MarkerOptions()
+        if (endLatLng != null) {
+            endMarker = new MarkerOptions()
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.end))
                     .position(endLatLng).draggable(true);
             mMap.addMarker(endMarker);
@@ -107,9 +109,9 @@ public class RunningModeSettingActivity extends AppCompatActivity implements Goo
 
     @Override
     public void onMarkerDragEnd(Marker marker) {
-        if(marker.equals(startMarker)){
+        if (marker.equals(startMarker)) {
             startLatLng = marker.getPosition();
-        }else if(marker.equals(endMarker)){
+        } else if (marker.equals(endMarker)) {
             endLatLng = marker.getPosition();
         }
 
