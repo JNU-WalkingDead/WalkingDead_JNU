@@ -181,7 +181,8 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         Log.d(TAG, "onConnected()");
-
+        mMap.setMyLocationEnabled(true);
+        mMap.getUiSettings().setMyLocationButtonEnabled(false);
         // 현재위치가 준비되면 핸들러 post
         handler.post(new Runnable() {
             @Override
