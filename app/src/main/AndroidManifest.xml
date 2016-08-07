@@ -49,6 +49,12 @@
         <activity
             android:name=".RunningActivity"
             android:label="@string/title_activity_running"></activity>
+
+        <activity
+            android:name=".WinLoseDialogActivity"
+            android:theme="@style/Theme.AppCompat.Light.Dialog.Alert">
+
+        </activity>
     </application>
 
 </manifest>

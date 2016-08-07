@@ -5,58 +5,112 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.location.LocationManager;
-import android.location.LocationProvider;
+import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
-import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RunningActivity extends FragmentActivity implements OnMapReadyCallback {
+
+public class RunningActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = "RunningActivity";
+    private static final int ZOMBIE_SPEED = 5;
+    private static final int CAMERA_TILT = 80;
 
     private GoogleMap mMap;
     private LatLng startLatLng, endLatLng;
     private List<Zombie> zombies;
 
+    // 현재 위치를 받아옴
+    private GoogleApiClient googleApiClient;
+    private Location myLocation;
+
+    // Timer
+    private TextView timerTextView;
+    private int currentTime;
+    private SimpleDateFormat timeFormat;
+
     private Handler handler;
-    private MyThread thread;
+    private boolean isFinished = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_running);
 
+        timerTextView = (TextView) findViewById(R.id.timer_text_view);
+        timeFormat = new SimpleDateFormat("mm:ss.SS");
+        currentTime = 0;
+
+        if (googleApiClient == null)
+            googleApiClient = new GoogleApiClient.Builder(getBaseContext())
+                    .addApi(LocationServices.API)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .build();
+
+
         Intent intent = getIntent();
         startLatLng = (LatLng) intent.getParcelableExtra("start");
         endLatLng = (LatLng) intent.getParcelableExtra("end");
 
+        findViewById(R.id.current_location_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (myLocation == null)
+                    return;
+                Location endLocation = new Location("endLocation");
+                endLocation.setLatitude(endLatLng.latitude);
+                endLocation.setLongitude(endLatLng.longitude);
+                float bearing = myLocation.bearingTo(endLocation);
+
+                LatLng target = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
+                CameraPosition cameraPosition = new CameraPosition.Builder()
+                        .target(target)
+                        .zoom(17)
+                        .tilt(CAMERA_TILT)
+                        .bearing(bearing)
+                        .build();
+                // duration 2000
+                mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 2000, null);
+            }
+        });
+
+        // 좀비 객체 10마리 생성
         zombies = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
-            Zombie zombie = new Zombie();
+            /// 좀비마커옵션 생성
             double randomLatitude = (double) ((int) (Math.random() * 100) + 1) / 10000;
             randomLatitude = randomLatitude + startLatLng.latitude;
             double randomLongitude = (double) ((int) (Math.random() * 100) + 1) / 10000;
             randomLongitude = randomLongitude + startLatLng.longitude;
-            LatLng position = new LatLng(randomLatitude, randomLongitude);
-            zombie.setPosition(position);
+            MarkerOptions zombieMarker = new MarkerOptions().position(new LatLng(randomLatitude, randomLongitude)).icon(BitmapDescriptorFactory.fromResource(R.drawable.skull));
+
+            // 좀비 객체 생성
+            Zombie zombie = new Zombie(zombieMarker);
             zombies.add(zombie);
         }
 
@@ -66,30 +120,18 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
         mapFragment.getMapAsync(this);
 
         handler = new Handler();
-        thread = new MyThread();
     }
-
-
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
 
     public void setDefaultMarkers() {
         MarkerOptions startMarker = new MarkerOptions()
-                .position(startLatLng).draggable(true);
+                .position(startLatLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_map_start));
         mMap.addMarker(startMarker);
         MarkerOptions endMarker = new MarkerOptions()
-                .position(endLatLng).draggable(true);
+                .position(endLatLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_map_end));
         mMap.addMarker(endMarker);
     }
 
-    // 지도가 준비되는 불리는 콜백메서드 인듯?
+    // 지도가 준비되는 불리는 콜백메서드
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
@@ -101,75 +143,130 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
             startActivity(goSettings);
             return;
         }
-        mMap.setMyLocationEnabled(true);
 
-        LatLng myLocation = new LatLng(33.499234, 126.530714);
-
+        LatLng myLocation = new LatLng(startLatLng.latitude, startLatLng.longitude);
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 15));
-
-        // 출발지 목적지 마커를 설정
-        setDefaultMarkers();
-
-        // 좀비 객체들을 각각 마커로 찍어줌
-        for (Zombie zombie : zombies) {
-            MarkerOptions markerOptions = new MarkerOptions().position(zombie.getPosition())
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.skull));
-            Log.d(TAG, "" + zombie.getPosition());
-            mMap.addMarker(markerOptions);
-        }
-
-        // 지도가 준비되면 쓰레드 시작
-        thread.start();
     }
 
-    class MyThread extends Thread {
+    // 현재 위치를 가져오기 위한 connect
+    @Override
+    protected void onStart() {
+        super.onStart();
+        googleApiClient.connect();
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (!isFinished) {
 
-        @Override
-        public void run() {
-            super.run();
-            while (true) {
-                try {
-                    // 좀비는 5초마다 움직임.
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) {
-                    Log.e(TAG, "Thread InterruptedException" + e);
+                    handler.postDelayed(this, 100);
+                    currentTime += 100;
+                    timerTextView.setText(timeFormat.format(currentTime).substring(0, 7));
                 }
-                // 좀비의 움직임을 위해 UI 업데이트
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        mMap.clear();
-
-                        setDefaultMarkers();
-
-                        // 좀비를 새로 생성하고
-                        List<Zombie> newZombies = new ArrayList<>();
-                        for (Zombie zombie : zombies) {
-                            Zombie newZombie = new Zombie();
-                            // 좀비의 현재 위치와 시작점의 위치를 반으로 잘라서 쫓아옴
-                            double newLatitude = (startLatLng.latitude + zombie.getPosition().latitude) / 2;
-                            double newLongitude = (startLatLng.longitude + zombie.getPosition().longitude) / 2;
-                            LatLng newPosition = new LatLng(newLatitude, newLongitude);
-                            newZombie.setPosition(newPosition);
-                            newZombies.add(newZombie);
-                        }
-
-                        // 좀비를 다시 없애는 과정
-                        zombies.clear();
-                        zombies.addAll(newZombies);
-
-                        // 생성된 좀비를 마커로 찍는 과정
-                        for (Zombie zombie : zombies) {
-                            MarkerOptions markerOptions = new MarkerOptions().position(zombie.getPosition())
-                                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.skull));
-                            Log.d(TAG, "" + zombie.getPosition());
-                            mMap.addMarker(markerOptions);
-                        }
-
-                    }
-                });
             }
+        });
+    }
+
+    // 현재 위치를 가져오기 위한 connect
+    @Override
+    protected void onStop() {
+        googleApiClient.disconnect();
+        super.onStop();
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        Log.d(TAG, "onConnected()");
+
+        // 현재위치가 준비되면 핸들러 post
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (!isFinished) {
+
+                    handler.postDelayed(this, 500);
+                    if (ActivityCompat.checkSelfPermission(getBaseContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                            && ActivityCompat.checkSelfPermission(getBaseContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+                        return;
+                    myLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
+
+                    // 500 밀리초마다 반복
+                    mMap.clear();
+                    setDefaultMarkers();
+
+                    if (myLocation != null) {
+                        // 좀비의 위치 변경
+                        for (Zombie zombie : zombies) {
+                            mMap.addMarker(zombie.getZombieMarkerOptions());
+                            // 좀비의 속도 / 100 만큼 쫓아옴
+                            double newLatitude = zombie.getPosition().latitude +
+                                    (myLocation.getLatitude() - zombie.getPosition().latitude) * ZOMBIE_SPEED / 100;
+                            double newLongitude = zombie.getPosition().longitude +
+                                    (myLocation.getLongitude() - zombie.getPosition().longitude) * ZOMBIE_SPEED / 100;
+
+                            LatLng newPosition = new LatLng(newLatitude, newLongitude);
+                            zombie.setPosition(newPosition);
+                            mMap.addMarker(zombie.getZombieMarkerOptions());
+
+                            checkGameIsFinished(zombie);
+                        }
+                    }
+                }
+
+            }
+        });
+
+
+    }
+
+    private void checkGameIsFinished(Zombie zombie) {
+
+        Intent intent = new Intent(RunningActivity.this, WinLoseDialogActivity.class);
+        double distanceWithZombie;
+
+        Location zombieLocation = new Location("zombieLocation");
+        zombieLocation.setLatitude(zombie.getPosition().latitude);
+        zombieLocation.setLongitude(zombie.getPosition().longitude);
+        distanceWithZombie = myLocation.distanceTo(zombieLocation);
+
+        double distanceWithEndPoint;
+
+        Location endPointLocation = new Location("endPontLocation");
+        endPointLocation.setLatitude(endLatLng.latitude);
+        endPointLocation.setLongitude(endLatLng.longitude);
+        distanceWithEndPoint = myLocation.distanceTo(endPointLocation);
+
+
+        if (distanceWithZombie < 10 || distanceWithEndPoint < 10) {
+            Location startLocation = new Location("startLocation");
+            startLocation.setLatitude(startLatLng.latitude);
+            startLocation.setLongitude(startLatLng.longitude);
+            double distanceWalking = myLocation.distanceTo(startLocation);
+
+            String title = "실패";
+            if (distanceWithEndPoint < 10) {
+                title = "성공";
+            }
+            intent.putExtra(WinLoseDialogActivity.EXTRA_RESULT_TITLE, title);
+            intent.putExtra(WinLoseDialogActivity.EXTRA_WALKING_DISTANCE, "" + Math.round(distanceWalking));
+            intent.putExtra(WinLoseDialogActivity.EXTRA_TIME_CHECK, timerTextView.getText());
+            intent.putExtra(WinLoseDialogActivity.EXTRA_REAL_TIME, currentTime);
+            startActivity(intent);
+            isFinished = true;
         }
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        Log.d(TAG, "onConnectionSuspended()");
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Log.d(TAG, "onConnectionFailed()");
     }
 }
