@@ -33,11 +33,13 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import jejunu.hackathon.walkingdead.util.NegativePositiveRandomGenerator;
+
 
 public class RunningActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = "RunningActivity";
-    private static final int ZOMBIE_SPEED = 5;
+    private static final int ZOMBIE_SPEED = 3;
     private static final int CAMERA_TILT = 80;
 
     private GoogleMap mMap;
@@ -103,9 +105,9 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
         zombies = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             /// 좀비마커옵션 생성
-            double randomLatitude = (double) ((int) (Math.random() * 100) + 1) / 10000;
+            double randomLatitude = NegativePositiveRandomGenerator.generate() * ((int) (Math.random() * 100) + 1 + 0.0025) / 10000;
             randomLatitude = randomLatitude + startLatLng.latitude;
-            double randomLongitude = (double) ((int) (Math.random() * 100) + 1) / 10000;
+            double randomLongitude = NegativePositiveRandomGenerator.generate() * ((int) (Math.random() * 100) + 1 + 0.0025) / 10000;
             randomLongitude = randomLongitude + startLatLng.longitude;
             MarkerOptions zombieMarker = new MarkerOptions().position(new LatLng(randomLatitude, randomLongitude)).icon(BitmapDescriptorFactory.fromResource(R.drawable.skull));
 
@@ -162,7 +164,6 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
             @Override
             public void run() {
                 if (!isFinished) {
-
                     handler.postDelayed(this, 100);
                     currentTime += 100;
                     timerTextView.setText(timeFormat.format(currentTime).substring(0, 7));
@@ -202,12 +203,11 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
                     if (myLocation != null) {
                         // 좀비의 위치 변경
                         for (Zombie zombie : zombies) {
-                            mMap.addMarker(zombie.getZombieMarkerOptions());
-                            // 좀비의 속도 / 100 만큼 쫓아옴
+                            // 좀비의 속도 / 1000 만큼 쫓아옴
                             double newLatitude = zombie.getPosition().latitude +
-                                    (myLocation.getLatitude() - zombie.getPosition().latitude) * ZOMBIE_SPEED / 100;
+                                    (myLocation.getLatitude() - zombie.getPosition().latitude) * ZOMBIE_SPEED / 1000;
                             double newLongitude = zombie.getPosition().longitude +
-                                    (myLocation.getLongitude() - zombie.getPosition().longitude) * ZOMBIE_SPEED / 100;
+                                    (myLocation.getLongitude() - zombie.getPosition().longitude) * ZOMBIE_SPEED / 1000;
 
                             LatLng newPosition = new LatLng(newLatitude, newLongitude);
                             zombie.setPosition(newPosition);

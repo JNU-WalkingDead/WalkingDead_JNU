@@ -45,7 +45,7 @@ public class RunningModeSettingActivity extends AppCompatActivity implements Goo
         setContentView(R.layout.activity_running_mode_setting);
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
-        toolbar.setTitle("출발지 및 목적지 설정");
+        toolbar.setTitle("목적지 설정");
         setSupportActionBar(toolbar);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -93,8 +93,6 @@ public class RunningModeSettingActivity extends AppCompatActivity implements Goo
                 && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
             return;
         mMap.setMyLocationEnabled(true);
-
-
     }
 
     @Override
@@ -135,6 +133,7 @@ public class RunningModeSettingActivity extends AppCompatActivity implements Goo
         }
         Location currentLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
         startLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(startLatLng, 15));
     }
 
     @Override

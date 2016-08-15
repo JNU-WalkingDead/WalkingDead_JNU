@@ -13,7 +13,9 @@ import android.widget.TextView;
 
 public class WalkingActivity extends AppCompatActivity implements SensorEventListener{
 
-    public static int stepCount = 0;
+
+    // 센서가 작동하는 순간 +1, 0부터 시작하기 위해서
+    public static int stepCount = -1;
     public static int coin = 0;
 
     private SensorManager sensorManager;
