@@ -34,12 +34,13 @@
             android:id="@+id/linearLayout">
 
             <TextView
+                android:id="@+id/distance_text"
                 android:layout_gravity="center"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@android:color/white"
-                android:textSize="20dp"
-                android:text="256m"/>
+                android:textSize="15dp"
+                android:text="0"/>
 
             <TextView
                 android:layout_width="wrap_content"
@@ -60,11 +61,12 @@
             android:id="@+id/linearLayout2">
 
             <TextView
+                android:id="@+id/time_text"
                 android:layout_gravity="center"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@android:color/white"
-                android:textSize="20dp"
+                android:textSize="15dp"
                 android:text="0"/>
 
             <TextView
@@ -86,12 +88,13 @@
             android:layout_alignParentEnd="true">
 
             <TextView
+                android:id="@+id/calorie_text"
                 android:layout_gravity="center"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@android:color/white"
-                android:textSize="20dp"
-                android:text="256kcal"/>
+                android:textSize="15dp"
+                android:text="0"/>
 
             <TextView
                 android:layout_width="wrap_content"

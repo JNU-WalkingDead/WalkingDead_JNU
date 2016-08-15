@@ -31,10 +31,14 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
+import io.realm.Realm;
+import jejunu.hackathon.walkingdead.model.Record;
 import jejunu.hackathon.walkingdead.model.Zombie;
 import jejunu.hackathon.walkingdead.util.NegativePositiveRandomGenerator;
+import jejunu.hackathon.walkingdead.util.TimeFormatter;
 
 
 public class RunningActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
@@ -55,10 +59,12 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
     // Timer
     private TextView timerTextView;
     private int currentTime;
-    private SimpleDateFormat timeFormat;
 
     private Handler handler;
     private boolean isFinished = false;
+
+    // DB
+    private Realm realm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,7 +72,6 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
         setContentView(R.layout.activity_running);
 
         timerTextView = (TextView) findViewById(R.id.timer_text_view);
-        timeFormat = new SimpleDateFormat("mm:ss.SS");
         currentTime = 0;
 
         if (googleApiClient == null)
@@ -124,6 +129,9 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
         mapFragment.getMapAsync(this);
 
         handler = new Handler();
+
+        // DB 세팅
+        realm = Realm.getDefaultInstance();
     }
 
     public void setDefaultMarkers() {
@@ -168,7 +176,7 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
                 if (!isFinished) {
                     handler.postDelayed(this, 100);
                     currentTime += 100;
-                    timerTextView.setText(timeFormat.format(currentTime).substring(0, 7));
+                    timerTextView.setText(TimeFormatter.format(currentTime));
                 }
             }
         });
@@ -259,6 +267,15 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
             intent.putExtra(WinLoseDialogActivity.EXTRA_TIME_CHECK, timerTextView.getText());
             intent.putExtra(WinLoseDialogActivity.EXTRA_REAL_TIME, currentTime);
             startActivity(intent);
+
+            realm.beginTransaction();
+            Record record = new Record();
+            record.setResult(title);
+            record.setDate(new Date());
+            record.setDistance(Math.round(distanceWalking));
+            record.setTime(currentTime);
+            realm.copyToRealm(record);
+            realm.commitTransaction();
             isFinished = true;
         }
     }
