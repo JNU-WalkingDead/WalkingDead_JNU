@@ -1,4 +1,4 @@
-package jejunu.hackathon.walkingdead;
+package jejunu.hackathon.walkingdead.model;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;

@@ -33,14 +33,16 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import jejunu.hackathon.walkingdead.model.Zombie;
 import jejunu.hackathon.walkingdead.util.NegativePositiveRandomGenerator;
 
 
 public class RunningActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = "RunningActivity";
-    private static final int ZOMBIE_SPEED = 3;
+
     private static final int CAMERA_TILT = 80;
+    private static final int ZOMBIE_SPEED = 3;
 
     private GoogleMap mMap;
     private LatLng startLatLng, endLatLng;

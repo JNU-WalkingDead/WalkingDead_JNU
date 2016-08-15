@@ -49,7 +49,9 @@ public class WalkingActivity extends AppCompatActivity implements SensorEventLis
     @Override
     public void onSensorChanged(SensorEvent event) {
         stepCount = stepCount + 1;
+        coin = coin + 1;
         stepCountText.setText(String.valueOf(stepCount));
+        coinText.setText(String.valueOf(coin));
     }
 
     @Override

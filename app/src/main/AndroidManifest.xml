@@ -13,6 +13,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
+        android:name=".application.MyApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -45,16 +46,16 @@
 
         <activity
             android:name=".RunningModeSettingActivity"
-            android:label="@string/title_activity_test"></activity>
+            android:label="@string/title_activity_test" />
         <activity
             android:name=".RunningActivity"
-            android:label="@string/title_activity_running"></activity>
-
+            android:label="@string/title_activity_running" />
         <activity
             android:name=".WinLoseDialogActivity"
-            android:theme="@style/Theme.AppCompat.Light.Dialog.Alert">
-
-        </activity>
+            android:theme="@style/Theme.AppCompat.Light.Dialog.Alert" />
+        <activity android:name=".ShopActivity" />
+        <activity android:name=".RecordActivity" />
+        <activity android:name=".CharacterActivity"></activity>
     </application>
 
 </manifest>
