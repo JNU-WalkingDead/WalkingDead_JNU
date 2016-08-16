@@ -39,7 +39,7 @@ import jejunu.hackathon.walkingdead.R;
 import jejunu.hackathon.walkingdead.WinLoseDialogActivity;
 import jejunu.hackathon.walkingdead.model.Record;
 import jejunu.hackathon.walkingdead.model.Zombie;
-import jejunu.hackathon.walkingdead.util.NegativePositiveRandomGenerator;
+import jejunu.hackathon.walkingdead.util.RandomGenerator;
 import jejunu.hackathon.walkingdead.util.TimeFormatter;
 
 
@@ -48,7 +48,7 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
     private static final String TAG = "RunningActivity";
 
     private static final int CAMERA_TILT = 80;
-    private static final int ZOMBIE_SPEED = 3;
+    private static final int ZOMBIE_SPEED = 30;
 
     private GoogleMap mMap;
     private LatLng startLatLng, endLatLng;
@@ -117,9 +117,9 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
         zombies = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             /// 좀비마커옵션 생성
-            double randomLatitude = NegativePositiveRandomGenerator.generate() * ((int) (Math.random() * 100) + 1 + 0.0025) / 10000;
+            double randomLatitude = RandomGenerator.generate();
             randomLatitude = randomLatitude + startLatLng.latitude;
-            double randomLongitude = NegativePositiveRandomGenerator.generate() * ((int) (Math.random() * 100) + 1 + 0.0025) / 10000;
+            double randomLongitude = RandomGenerator.generate();
             randomLongitude = randomLongitude + startLatLng.longitude;
             MarkerOptions zombieMarker = new MarkerOptions().position(new LatLng(randomLatitude, randomLongitude)).icon(BitmapDescriptorFactory.fromResource(R.drawable.zombie_icon));
 
@@ -140,6 +140,7 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
 
         // 소리 세팅
         zombieSound = MediaPlayer.create(this, R.raw.zombie_sound);
+        zombieSound.setLooping(true);
     }
 
     public void setDefaultMarkers() {
@@ -194,8 +195,13 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
     @Override
     protected void onStop() {
         googleApiClient.disconnect();
-        zombieSound.stop();
         super.onStop();
+    }
+
+    @Override
+    protected void onDestroy(){
+        super.onDestroy();
+        zombieSound.stop();
     }
 
     @Override
@@ -221,6 +227,7 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
 
                     if (myLocation != null) {
                         // 좀비의 위치 변경
+                        checkZombiesAreNear(zombies);
                         for (Zombie zombie : zombies) {
                             // 좀비의 속도 / 1000 만큼 쫓아옴
                             double newLatitude = zombie.getPosition().latitude +
@@ -279,6 +286,32 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
         realm.copyToRealm(record);
         realm.commitTransaction();
         isFinished = true;
+    }
+
+    private void checkZombiesAreNear(List<Zombie> zombies){
+        boolean zombieIsNear = false;
+        double nearestDistanceToZombie = 10000000;
+        float volumeSize = 0;
+        for (Zombie zombie : zombies) {
+            if(distanceToZombie(zombie) < 200){
+                if(nearestDistanceToZombie > distanceToZombie(zombie)){
+                    nearestDistanceToZombie = distanceToZombie(zombie);
+                }
+                zombieIsNear = true;
+            }
+        }
+        volumeSize = (float) (200 - nearestDistanceToZombie) / 200;
+        if (zombieIsNear){
+            if(!zombieSound.isPlaying()){
+                zombieSound.start();
+            }
+            zombieSound.setVolume(volumeSize, volumeSize);
+        }
+        else{
+            if(zombieSound.isPlaying()){
+                zombieSound.stop();
+            }
+        }
     }
 
     private void checkGameStatus(Zombie zombie) {

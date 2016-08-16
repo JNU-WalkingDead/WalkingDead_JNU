@@ -3,7 +3,7 @@ package jejunu.hackathon.walkingdead.util;
 /**
  * Created by Kim on 2016-08-15.
  */
-public class NegativePositiveRandomGenerator {
+public class RandomGenerator {
 
     public static double generate(){
         double result;
@@ -14,6 +14,7 @@ public class NegativePositiveRandomGenerator {
         else{
             result = 1;
         }
+        result = result * ((int) (Math.random() * 100) + 1 + 0.01) / 10000;
         return result;
     }
 }

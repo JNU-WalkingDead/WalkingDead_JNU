@@ -2,7 +2,7 @@ package jejunu.hackathon.walkingdead;
 
 import org.junit.Test;
 
-import jejunu.hackathon.walkingdead.util.NegativePositiveRandomGenerator;
+import jejunu.hackathon.walkingdead.util.RandomGenerator;
 
 import static org.junit.Assert.assertEquals;
 
@@ -28,7 +28,7 @@ public class ExampleUnitTest {
     public void random_test2() {
         double total = 0;
         for (int i = 1; i <= 10; i++) {
-            double random = NegativePositiveRandomGenerator.generate();
+            double random = RandomGenerator.generate();
             System.out.println(random);
         }
     }
