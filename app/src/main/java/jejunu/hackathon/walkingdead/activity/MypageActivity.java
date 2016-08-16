@@ -1,4 +1,4 @@
-package jejunu.hackathon.walkingdead;
+package jejunu.hackathon.walkingdead.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import io.realm.Realm;
 import io.realm.RealmResults;
+import jejunu.hackathon.walkingdead.R;
 import jejunu.hackathon.walkingdead.model.Record;
 import jejunu.hackathon.walkingdead.util.TimeFormatter;
 

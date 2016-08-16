@@ -6,6 +6,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.TextView;
 
+import jejunu.hackathon.walkingdead.activity.SplashActivity;
+
 public class WinLoseDialogActivity extends AppCompatActivity {
 
     private TextView resultTextView, timeCheckTextView, walkingDistanceTextView;

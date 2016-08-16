@@ -1,4 +1,4 @@
-package jejunu.hackathon.walkingdead;
+package jejunu.hackathon.walkingdead.activity;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -7,6 +7,7 @@ import android.support.v7.widget.RecyclerView;
 
 import io.realm.Realm;
 import io.realm.RealmResults;
+import jejunu.hackathon.walkingdead.R;
 import jejunu.hackathon.walkingdead.adapter.RecordAdapter;
 import jejunu.hackathon.walkingdead.model.Record;
 

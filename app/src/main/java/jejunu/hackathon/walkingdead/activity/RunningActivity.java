@@ -1,10 +1,11 @@
-package jejunu.hackathon.walkingdead;
+package jejunu.hackathon.walkingdead.activity;
 
 
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
@@ -29,12 +30,13 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import io.realm.Realm;
+import jejunu.hackathon.walkingdead.R;
+import jejunu.hackathon.walkingdead.WinLoseDialogActivity;
 import jejunu.hackathon.walkingdead.model.Record;
 import jejunu.hackathon.walkingdead.model.Zombie;
 import jejunu.hackathon.walkingdead.util.NegativePositiveRandomGenerator;
@@ -65,6 +67,9 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
 
     // DB
     private Realm realm;
+
+    // 좀비 소리
+    private MediaPlayer zombieSound;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,7 +121,7 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
             randomLatitude = randomLatitude + startLatLng.latitude;
             double randomLongitude = NegativePositiveRandomGenerator.generate() * ((int) (Math.random() * 100) + 1 + 0.0025) / 10000;
             randomLongitude = randomLongitude + startLatLng.longitude;
-            MarkerOptions zombieMarker = new MarkerOptions().position(new LatLng(randomLatitude, randomLongitude)).icon(BitmapDescriptorFactory.fromResource(R.drawable.skull));
+            MarkerOptions zombieMarker = new MarkerOptions().position(new LatLng(randomLatitude, randomLongitude)).icon(BitmapDescriptorFactory.fromResource(R.drawable.zombie_icon));
 
             // 좀비 객체 생성
             Zombie zombie = new Zombie(zombieMarker);
@@ -132,6 +137,9 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
 
         // DB 세팅
         realm = Realm.getDefaultInstance();
+
+        // 소리 세팅
+        zombieSound = MediaPlayer.create(this, R.raw.zombie_sound);
     }
 
     public void setDefaultMarkers() {
@@ -186,6 +194,7 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
     @Override
     protected void onStop() {
         googleApiClient.disconnect();
+        zombieSound.stop();
         super.onStop();
     }
 
@@ -223,60 +232,60 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
                             zombie.setPosition(newPosition);
                             mMap.addMarker(zombie.getZombieMarkerOptions());
 
-                            checkGameIsFinished(zombie);
+                            checkGameStatus(zombie);
                         }
                     }
                 }
 
             }
         });
-
-
     }
 
-    private void checkGameIsFinished(Zombie zombie) {
-
-        Intent intent = new Intent(RunningActivity.this, WinLoseDialogActivity.class);
-        double distanceWithZombie;
-
+    private double distanceToZombie(Zombie zombie) {
         Location zombieLocation = new Location("zombieLocation");
         zombieLocation.setLatitude(zombie.getPosition().latitude);
         zombieLocation.setLongitude(zombie.getPosition().longitude);
-        distanceWithZombie = myLocation.distanceTo(zombieLocation);
+        return myLocation.distanceTo(zombieLocation);
+    }
 
-        double distanceWithEndPoint;
-
+    private double distanceToEndPoint() {
         Location endPointLocation = new Location("endPontLocation");
         endPointLocation.setLatitude(endLatLng.latitude);
         endPointLocation.setLongitude(endLatLng.longitude);
-        distanceWithEndPoint = myLocation.distanceTo(endPointLocation);
+        return myLocation.distanceTo(endPointLocation);
+    }
 
+    private double distanceFromStartToEnd() {
+        Location startLocation = new Location("startLocation");
+        startLocation.setLatitude(startLatLng.latitude);
+        startLocation.setLongitude(startLatLng.longitude);
+        return myLocation.distanceTo(startLocation);
+    }
 
-        if (distanceWithZombie < 10 || distanceWithEndPoint < 10) {
-            Location startLocation = new Location("startLocation");
-            startLocation.setLatitude(startLatLng.latitude);
-            startLocation.setLongitude(startLatLng.longitude);
-            double distanceWalking = myLocation.distanceTo(startLocation);
+    private void gameOver(String result) {
+        Intent intent = new Intent(RunningActivity.this, WinLoseDialogActivity.class);
+        intent.putExtra(WinLoseDialogActivity.EXTRA_RESULT_TITLE, result);
+        intent.putExtra(WinLoseDialogActivity.EXTRA_WALKING_DISTANCE, "" + Math.round(distanceFromStartToEnd()));
+        intent.putExtra(WinLoseDialogActivity.EXTRA_TIME_CHECK, timerTextView.getText());
+        intent.putExtra(WinLoseDialogActivity.EXTRA_REAL_TIME, currentTime);
+        startActivity(intent);
 
-            String title = "실패";
-            if (distanceWithEndPoint < 10) {
-                title = "성공";
-            }
-            intent.putExtra(WinLoseDialogActivity.EXTRA_RESULT_TITLE, title);
-            intent.putExtra(WinLoseDialogActivity.EXTRA_WALKING_DISTANCE, "" + Math.round(distanceWalking));
-            intent.putExtra(WinLoseDialogActivity.EXTRA_TIME_CHECK, timerTextView.getText());
-            intent.putExtra(WinLoseDialogActivity.EXTRA_REAL_TIME, currentTime);
-            startActivity(intent);
+        realm.beginTransaction();
+        Record record = new Record();
+        record.setResult(result);
+        record.setDate(new Date());
+        record.setDistance(Math.round(distanceFromStartToEnd()));
+        record.setTime(currentTime);
+        realm.copyToRealm(record);
+        realm.commitTransaction();
+        isFinished = true;
+    }
 
-            realm.beginTransaction();
-            Record record = new Record();
-            record.setResult(title);
-            record.setDate(new Date());
-            record.setDistance(Math.round(distanceWalking));
-            record.setTime(currentTime);
-            realm.copyToRealm(record);
-            realm.commitTransaction();
-            isFinished = true;
+    private void checkGameStatus(Zombie zombie) {
+        if (distanceToEndPoint() < 10) {
+            gameOver("성공");
+        } else if (distanceToZombie(zombie) < 10) {
+            gameOver("실패");
         }
     }
 

@@ -1,4 +1,4 @@
-package jejunu.hackathon.walkingdead;
+package jejunu.hackathon.walkingdead.activity;
 
 import android.Manifest;
 import android.content.Intent;
@@ -24,6 +24,8 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import jejunu.hackathon.walkingdead.R;
 
 
 public class RunningModeSettingActivity extends AppCompatActivity implements GoogleMap.OnMarkerDragListener, OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
@@ -133,7 +135,7 @@ public class RunningModeSettingActivity extends AppCompatActivity implements Goo
         }
         Location currentLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
         startLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(startLatLng, 15));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(startLatLng, 16));
     }
 
     @Override
