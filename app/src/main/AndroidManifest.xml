@@ -51,7 +51,7 @@
             android:name=".activity.RunningActivity"
             android:label="@string/title_activity_running" />
         <activity
-            android:name=".WinLoseDialogActivity"
+            android:name=".ResultDialog"
             android:theme="@style/Theme.AppCompat.Light.Dialog.Alert" />
         <activity android:name=".activity.ShopActivity" />
         <activity android:name=".activity.RecordActivity" />

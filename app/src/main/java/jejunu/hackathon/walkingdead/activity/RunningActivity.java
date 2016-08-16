@@ -2,6 +2,7 @@ package jejunu.hackathon.walkingdead.activity;
 
 
 import android.Manifest;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -36,7 +37,7 @@ import java.util.List;
 
 import io.realm.Realm;
 import jejunu.hackathon.walkingdead.R;
-import jejunu.hackathon.walkingdead.WinLoseDialogActivity;
+import jejunu.hackathon.walkingdead.ResultDialog;
 import jejunu.hackathon.walkingdead.model.Record;
 import jejunu.hackathon.walkingdead.model.Zombie;
 import jejunu.hackathon.walkingdead.util.RandomGenerator;
@@ -48,7 +49,7 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
     private static final String TAG = "RunningActivity";
 
     private static final int CAMERA_TILT = 80;
-    private static final int ZOMBIE_SPEED = 30;
+    private static final int ZOMBIE_SPEED = 500;
 
     private GoogleMap mMap;
     private LatLng startLatLng, endLatLng;
@@ -70,6 +71,10 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
 
     // 좀비 소리
     private MediaPlayer zombieSound;
+
+    // 결과 다이얼로그
+    private ResultDialog resultDialog;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -141,6 +146,7 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
         // 소리 세팅
         zombieSound = MediaPlayer.create(this, R.raw.zombie_sound);
         zombieSound.setLooping(true);
+
     }
 
     public void setDefaultMarkers() {
@@ -270,12 +276,12 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
     }
 
     private void gameOver(String result) {
-        Intent intent = new Intent(RunningActivity.this, WinLoseDialogActivity.class);
-        intent.putExtra(WinLoseDialogActivity.EXTRA_RESULT_TITLE, result);
-        intent.putExtra(WinLoseDialogActivity.EXTRA_WALKING_DISTANCE, "" + Math.round(distanceFromStartToEnd()));
-        intent.putExtra(WinLoseDialogActivity.EXTRA_TIME_CHECK, timerTextView.getText());
-        intent.putExtra(WinLoseDialogActivity.EXTRA_REAL_TIME, currentTime);
-        startActivity(intent);
+    //        Intent intent = new Intent(RunningActivity.this, ResultDialog.class);
+    //        intent.putExtra(ResultDialog.EXTRA_RESULT_TITLE, result);
+    //        intent.putExtra(ResultDialog.EXTRA_WALKING_DISTANCE, "" + Math.round(distanceFromStartToEnd()));
+    //        intent.putExtra(ResultDialog.EXTRA_TIME_CHECK, timerTextView.getText());
+    //        intent.putExtra(ResultDialog.EXTRA_REAL_TIME, currentTime);
+    //        startActivity(intent);
 
         realm.beginTransaction();
         Record record = new Record();
@@ -286,6 +292,10 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
         realm.copyToRealm(record);
         realm.commitTransaction();
         isFinished = true;
+
+        resultDialog = new ResultDialog(this, record);
+        resultDialog.setCancelable(false);
+        resultDialog.show();
     }
 
     private void checkZombiesAreNear(List<Zombie> zombies){
@@ -319,6 +329,7 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
             gameOver("성공");
         } else if (distanceToZombie(zombie) < 10) {
             gameOver("실패");
+            zombieSound.stop();
         }
     }
 

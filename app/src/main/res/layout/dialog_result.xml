@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@android:color/transparent"
+    tools:context=".ResultDialog">
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/transparent_background"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true">
+
+        <ImageView
+            android:layout_width="250dp"
+            android:layout_height="300dp"
+            android:src="@drawable/success_2"
+            android:id="@+id/imageView"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true" />
+
+        <TextView
+            android:id="@+id/time_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/white"
+            android:textSize="20dp"
+            tools:text="00:00"
+            android:layout_marginBottom="22dp"
+            android:layout_above="@+id/calorie_text"
+            android:layout_alignRight="@+id/coin_text"
+            android:layout_alignEnd="@+id/coin_text" />
+
+        <TextView
+            android:id="@+id/distance_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/white"
+            android:textSize="20dp"
+            tools:text="0"
+            android:layout_marginBottom="56dp"
+            android:layout_alignBottom="@+id/time_text"
+            android:layout_alignRight="@+id/time_text"
+            android:layout_alignEnd="@+id/time_text" />
+
+        <TextView
+            android:id="@+id/calorie_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/white"
+            android:textSize="20dp"
+            tools:text="0"
+            android:layout_marginBottom="20dp"
+            android:layout_above="@+id/coin_text"
+            android:layout_alignRight="@+id/time_text"
+            android:layout_alignEnd="@+id/time_text" />
+
+        <TextView
+            android:id="@+id/coin_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/white"
+            android:textSize="20dp"
+            tools:text="0"
+            android:layout_marginBottom="25dp"
+            android:layout_above="@+id/to_main_button"
+            android:layout_alignRight="@+id/to_main_button"
+            android:layout_alignEnd="@+id/to_main_button" />
+
+        <Button
+            android:id="@+id/to_main_button"
+            android:layout_width="62dp"
+            android:layout_height="32dp"
+            android:background="@drawable/success_fail_button"
+            android:layout_alignBottom="@+id/imageView"
+            android:layout_centerHorizontal="true" />
+
+    </RelativeLayout>
+
+
+</RelativeLayout>
