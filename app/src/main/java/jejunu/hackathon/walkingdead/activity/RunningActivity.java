@@ -5,6 +5,7 @@ import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.ColorDrawable;
 import android.location.Location;
 import android.media.MediaPlayer;
 import android.os.Bundle;
@@ -49,7 +50,7 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
     private static final String TAG = "RunningActivity";
 
     private static final int CAMERA_TILT = 80;
-    private static final int ZOMBIE_SPEED = 500;
+    private static final int ZOMBIE_SPEED = 5;
 
     private GoogleMap mMap;
     private LatLng startLatLng, endLatLng;
@@ -276,13 +277,6 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
     }
 
     private void gameOver(String result) {
-    //        Intent intent = new Intent(RunningActivity.this, ResultDialog.class);
-    //        intent.putExtra(ResultDialog.EXTRA_RESULT_TITLE, result);
-    //        intent.putExtra(ResultDialog.EXTRA_WALKING_DISTANCE, "" + Math.round(distanceFromStartToEnd()));
-    //        intent.putExtra(ResultDialog.EXTRA_TIME_CHECK, timerTextView.getText());
-    //        intent.putExtra(ResultDialog.EXTRA_REAL_TIME, currentTime);
-    //        startActivity(intent);
-
         realm.beginTransaction();
         Record record = new Record();
         record.setResult(result);
@@ -294,6 +288,7 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
         isFinished = true;
 
         resultDialog = new ResultDialog(this, record);
+        resultDialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
         resultDialog.setCancelable(false);
         resultDialog.show();
     }

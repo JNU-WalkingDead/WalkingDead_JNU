@@ -2,7 +2,6 @@ package jejunu.hackathon.walkingdead;
 
 import android.app.Activity;
 import android.app.Dialog;
-import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
@@ -23,7 +22,6 @@ public class ResultDialog extends Dialog {
 
     private Activity activity;
     private Record record;
-
 
     public ResultDialog(Activity activity, Record record) {
         super(activity);
