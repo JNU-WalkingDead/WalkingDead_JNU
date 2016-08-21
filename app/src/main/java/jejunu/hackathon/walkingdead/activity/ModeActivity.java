@@ -74,10 +74,10 @@ public class ModeActivity extends AppCompatActivity implements GoogleApiClient.C
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return false;
         }
-        if (LocationServices.FusedLocationApi.getLastLocation(googleApiClient) == null) {
-            Toast.makeText(this, "현재위치를 받아오고 있습니다. \n잠시후 다시 시도해주세요.", Toast.LENGTH_SHORT).show();
-            return false;
-        }
+//        if (LocationServices.FusedLocationApi.getLastLocation(googleApiClient) == null) {
+//            Toast.makeText(this, "현재위치를 받아오고 있습니다. \n잠시후 다시 시도해주세요.", Toast.LENGTH_SHORT).show();
+//            return false;
+//        }
         return true;
     }
 

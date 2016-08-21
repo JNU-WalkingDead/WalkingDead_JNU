@@ -134,8 +134,10 @@ public class RunningModeSettingActivity extends AppCompatActivity implements Goo
             return;
         }
         Location currentLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
-        startLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(startLatLng, 16));
+        if (currentLocation != null) {
+            startLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(startLatLng, 16));
+        }
     }
 
     @Override
