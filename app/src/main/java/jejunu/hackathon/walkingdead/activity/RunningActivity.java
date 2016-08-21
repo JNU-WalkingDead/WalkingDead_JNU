@@ -2,7 +2,6 @@ package jejunu.hackathon.walkingdead.activity;
 
 
 import android.Manifest;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.ColorDrawable;
@@ -45,7 +44,7 @@ import jejunu.hackathon.walkingdead.util.RandomGenerator;
 import jejunu.hackathon.walkingdead.util.TimeFormatter;
 
 
-public class RunningActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class RunningActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, View.OnClickListener {
 
     private static final String TAG = "RunningActivity";
 
@@ -81,73 +80,54 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_running);
+        initData();
+        initView();
+        initMap();
+        addZombie();
+    }
 
-        timerTextView = (TextView) findViewById(R.id.timer_text_view);
-        currentTime = 0;
-
+    private void initMap() {
         if (googleApiClient == null)
             googleApiClient = new GoogleApiClient.Builder(getBaseContext())
                     .addApi(LocationServices.API)
                     .addConnectionCallbacks(this)
                     .addOnConnectionFailedListener(this)
                     .build();
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+    }
 
+    private void initView() {
+        timerTextView = (TextView) findViewById(R.id.timer_text_view);
+        findViewById(R.id.current_location_button).setOnClickListener(this);
+    }
+
+    private void initData() {
+        handler = new Handler();
+        realm = Realm.getDefaultInstance();
+        currentTime = 0;
 
         Intent intent = getIntent();
         startLatLng = (LatLng) intent.getParcelableExtra("start");
         endLatLng = (LatLng) intent.getParcelableExtra("end");
 
-        findViewById(R.id.current_location_button).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (myLocation == null)
-                    return;
-                Location endLocation = new Location("endLocation");
-                endLocation.setLatitude(endLatLng.latitude);
-                endLocation.setLongitude(endLatLng.longitude);
-                float bearing = myLocation.bearingTo(endLocation);
+        zombieSound = MediaPlayer.create(this, R.raw.zombie_sound);
+        zombieSound.setLooping(true);
+    }
 
-                LatLng target = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
-                CameraPosition cameraPosition = new CameraPosition.Builder()
-                        .target(target)
-                        .zoom(17)
-                        .tilt(CAMERA_TILT)
-                        .bearing(bearing)
-                        .build();
-                // duration 2000
-                mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 2000, null);
-            }
-        });
-
-        // 좀비 객체 10마리 생성
+    private void addZombie() {
         zombies = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
-            /// 좀비마커옵션 생성
             double randomLatitude = RandomGenerator.generate();
             randomLatitude = randomLatitude + startLatLng.latitude;
             double randomLongitude = RandomGenerator.generate();
             randomLongitude = randomLongitude + startLatLng.longitude;
             MarkerOptions zombieMarker = new MarkerOptions().position(new LatLng(randomLatitude, randomLongitude)).icon(BitmapDescriptorFactory.fromResource(R.drawable.zombie_icon));
 
-            // 좀비 객체 생성
             Zombie zombie = new Zombie(zombieMarker);
             zombies.add(zombie);
         }
-
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-
-        handler = new Handler();
-
-        // DB 세팅
-        realm = Realm.getDefaultInstance();
-
-        // 소리 세팅
-        zombieSound = MediaPlayer.create(this, R.raw.zombie_sound);
-        zombieSound.setLooping(true);
-
     }
 
     public void setDefaultMarkers() {
@@ -206,7 +186,7 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
     }
 
     @Override
-    protected void onDestroy(){
+    protected void onDestroy() {
         super.onDestroy();
         zombieSound.stop();
     }
@@ -293,27 +273,26 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
         resultDialog.show();
     }
 
-    private void checkZombiesAreNear(List<Zombie> zombies){
+    private void checkZombiesAreNear(List<Zombie> zombies) {
         boolean zombieIsNear = false;
         double nearestDistanceToZombie = 10000000;
         float volumeSize = 0;
         for (Zombie zombie : zombies) {
-            if(distanceToZombie(zombie) < 200){
-                if(nearestDistanceToZombie > distanceToZombie(zombie)){
+            if (distanceToZombie(zombie) < 200) {
+                if (nearestDistanceToZombie > distanceToZombie(zombie)) {
                     nearestDistanceToZombie = distanceToZombie(zombie);
                 }
                 zombieIsNear = true;
             }
         }
         volumeSize = (float) (200 - nearestDistanceToZombie) / 200;
-        if (zombieIsNear){
-            if(!zombieSound.isPlaying()){
+        if (zombieIsNear) {
+            if (!zombieSound.isPlaying()) {
                 zombieSound.start();
             }
             zombieSound.setVolume(volumeSize, volumeSize);
-        }
-        else{
-            if(zombieSound.isPlaying()){
+        } else {
+            if (zombieSound.isPlaying()) {
                 zombieSound.stop();
             }
         }
@@ -336,5 +315,29 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         Log.d(TAG, "onConnectionFailed()");
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.current_location_button:
+                if (myLocation == null)
+                    return;
+                Location endLocation = new Location("endLocation");
+                endLocation.setLatitude(endLatLng.latitude);
+                endLocation.setLongitude(endLatLng.longitude);
+                float bearing = myLocation.bearingTo(endLocation);
+
+                LatLng target = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
+                CameraPosition cameraPosition = new CameraPosition.Builder()
+                        .target(target)
+                        .zoom(17)
+                        .tilt(CAMERA_TILT)
+                        .bearing(bearing)
+                        .build();
+                // duration 2000
+                mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 2000, null);
+                break;
+        }
     }
 }

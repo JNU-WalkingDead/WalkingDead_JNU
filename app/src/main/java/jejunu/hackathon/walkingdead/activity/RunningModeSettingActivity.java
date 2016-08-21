@@ -46,6 +46,7 @@ public class RunningModeSettingActivity extends AppCompatActivity implements Goo
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_running_mode_setting);
 
+
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle("목적지 설정");
         setSupportActionBar(toolbar);
@@ -129,7 +130,6 @@ public class RunningModeSettingActivity extends AppCompatActivity implements Goo
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        // 연결이 되면 현재위치를 받아옴.
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
