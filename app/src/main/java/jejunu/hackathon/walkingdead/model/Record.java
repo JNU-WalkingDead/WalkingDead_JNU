@@ -12,7 +12,7 @@ public class Record extends RealmObject {
     private String result;
     private Date date;
     private Long distance;
-    private int time;
+    private Long time;
 
     public String getResult() {
         return result;
@@ -38,11 +38,11 @@ public class Record extends RealmObject {
         this.distance = distance;
     }
 
-    public int getTime() {
+    public long getTime() {
         return time;
     }
 
-    public void setTime(int time) {
+    public void setTime(Long time) {
         this.time = time;
     }
 }

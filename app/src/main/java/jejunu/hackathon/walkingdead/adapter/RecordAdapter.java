@@ -36,7 +36,7 @@ public class RecordAdapter extends RecyclerView.Adapter<RecordAdapter.ViewHolder
         holder.resultText.setText(records.get(position).getResult());
         holder.dateText.setText(DateFormatter.format(records.get(position).getDate()));
         holder.distanceText.setText(String.valueOf(records.get(position).getDistance()));
-        holder.timeText.setText(TimeFormatter.format(records.get(position).getTime()));
+        holder.timeText.setText(TimeFormatter.format((int) (records.get(position).getTime())));
     }
 
     @Override

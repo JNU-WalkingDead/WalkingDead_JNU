@@ -44,9 +44,9 @@ public class ResultDialog extends Dialog {
             Drawable drawable = ContextCompat.getDrawable(getContext(), R.drawable.fail_2);
             imageView.setImageDrawable(drawable);
         }
-        timeText.setText(TimeFormatter.format(record.getTime()));
+        timeText.setText(TimeFormatter.format((int)(record.getTime())));
         distanceText.setText(String.valueOf(record.getDistance()));
-        calorieText.setText(String.valueOf(CalorieCalculator.defaultCalculate(record.getTime())));
+        calorieText.setText(String.valueOf(CalorieCalculator.defaultCalculate((int)(record.getTime()))));
         coinText.setText(String.valueOf(record.getDistance()));
 
         toMainButton.setOnClickListener(new View.OnClickListener() {

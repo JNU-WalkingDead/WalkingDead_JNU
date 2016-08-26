@@ -36,6 +36,7 @@ import java.util.Date;
 import java.util.List;
 
 import io.realm.Realm;
+import io.realm.RealmConfiguration;
 import jejunu.hackathon.walkingdead.R;
 import jejunu.hackathon.walkingdead.ResultDialog;
 import jejunu.hackathon.walkingdead.model.Record;
@@ -61,7 +62,7 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
 
     // Timer
     private TextView timerTextView;
-    private int currentTime;
+    private long startTime;
 
     private Handler handler;
     private boolean isFinished = false;
@@ -105,8 +106,8 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
 
     private void initData() {
         handler = new Handler();
-        realm = Realm.getDefaultInstance();
-        currentTime = 0;
+        realm = Realm.getInstance(new RealmConfiguration.Builder(this).deleteRealmIfMigrationNeeded().build());
+        startTime = System.currentTimeMillis();
 
         Intent intent = getIntent();
         startLatLng = (LatLng) intent.getParcelableExtra("start");
@@ -171,8 +172,7 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
             public void run() {
                 if (!isFinished) {
                     handler.postDelayed(this, 100);
-                    currentTime += 100;
-                    timerTextView.setText(TimeFormatter.format(currentTime));
+                    timerTextView.setText(TimeFormatter.format((int) (System.currentTimeMillis() - startTime)));
                 }
             }
         });
@@ -201,14 +201,13 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
             @Override
             public void run() {
                 if (!isFinished) {
-
-                    handler.postDelayed(this, 100);
+                    // 500 밀리초마다 반복
+                    handler.postDelayed(this, 500);
                     if (ActivityCompat.checkSelfPermission(getBaseContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                             && ActivityCompat.checkSelfPermission(getBaseContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
                         return;
                     myLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
 
-                    // 500 밀리초마다 반복
                     mMap.clear();
                     setDefaultMarkers();
 
@@ -262,7 +261,7 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
         record.setResult(result);
         record.setDate(new Date());
         record.setDistance(Math.round(distanceFromStartToEnd()));
-        record.setTime(currentTime);
+        record.setTime(startTime);
         realm.copyToRealm(record);
         realm.commitTransaction();
         isFinished = true;
