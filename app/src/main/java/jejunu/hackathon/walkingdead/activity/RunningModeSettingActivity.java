@@ -1,17 +1,22 @@
 package jejunu.hackathon.walkingdead.activity;
 
 import android.Manifest;
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -30,6 +35,7 @@ import jejunu.hackathon.walkingdead.R;
 
 public class RunningModeSettingActivity extends AppCompatActivity implements GoogleMap.OnMarkerDragListener, OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
+    private static final String TAG = "RunningModeSetting";
     private SupportMapFragment mapFragment;
     private Toolbar toolbar;
     private GoogleMap mMap;
@@ -96,6 +102,7 @@ public class RunningModeSettingActivity extends AppCompatActivity implements Goo
                 && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
             return;
         mMap.setMyLocationEnabled(true);
+        new MyLocationTask(this).execute();
     }
 
     @Override
@@ -130,13 +137,62 @@ public class RunningModeSettingActivity extends AppCompatActivity implements Goo
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
+    }
+
+    class MyLocationTask extends AsyncTask<Void, Void, LatLng> {
+
+        ProgressDialog progressDialog;
+        Context context;
+
+        public MyLocationTask(Context context) {
+            this.context = context;
         }
-        Location currentLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
-        if (currentLocation != null) {
-            startLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(startLatLng, 16));
+
+        @Override
+        protected void onPreExecute() {
+            progressDialog = new ProgressDialog(context);
+            progressDialog.setMessage("현재 위치를 받아오고 있습니다.");
+            progressDialog.setIndeterminate(true);
+            progressDialog.show();
+        }
+
+        @Override
+        protected LatLng doInBackground(Void... params) {
+            Location currentLocation = null;
+            if (ActivityCompat.checkSelfPermission(getBaseContext(),
+                    Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                    && ActivityCompat.checkSelfPermission(getBaseContext(),
+                    Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+                Log.d(TAG, "is not granted");
+
+            } else {
+                Log.d(TAG, "granted");
+
+                while (startLatLng == null) {
+                    currentLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
+                    if (currentLocation != null){
+                        startLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+                    }
+                }
+
+                Log.d(TAG, "startLatLng : " + startLatLng);
+
+            }
+            return startLatLng;
+        }
+
+        @Override
+        protected void onPostExecute(LatLng latLng) {
+            Log.d(TAG, "result : " + latLng);
+            if (latLng != null) {
+                if (progressDialog != null) {
+                    progressDialog.dismiss();
+                }
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16));
+            } else {
+                Toast.makeText(getBaseContext(), "권한을 승낙해야 합니다.", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 

@@ -202,7 +202,7 @@ public class RunningActivity extends FragmentActivity implements OnMapReadyCallb
             public void run() {
                 if (!isFinished) {
 
-                    handler.postDelayed(this, 500);
+                    handler.postDelayed(this, 100);
                     if (ActivityCompat.checkSelfPermission(getBaseContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                             && ActivityCompat.checkSelfPermission(getBaseContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
                         return;
